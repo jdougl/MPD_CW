@@ -1,0 +1,2 @@
+rootProject.name='MPD_CW'
+include ':app'
