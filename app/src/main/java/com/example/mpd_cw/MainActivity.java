@@ -9,12 +9,20 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
@@ -22,15 +30,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String result;
     private Button startButton;
     // Traffic Scotland URLs
-    //private String urlSource = "https://trafficscotland.org/rss/feeds/roadworks.aspx";
+    private String urlSource = "https://trafficscotland.org/rss/feeds/roadworks.aspx";
     //private String urlSource = "https://trafficscotland.org/rss/feeds/plannedroadworks.aspx";
-    private String urlSource = "https://trafficscotland.org/rss/feeds/currentincidents.aspx";
+    //private String urlSource = "https://trafficscotland.org/rss/feeds/currentincidents.aspx";
     private DatePicker datePicker;
 
     // Datepicker variables, storing locally to avoid recalling the API, wasting resources
     private int year;
     int month;
     int dayOfMonth;
+    String dateString;
 
 
     @Override
@@ -46,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Initialize datepicker and add a listener
         DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
-        Calendar calendar = Calendar.getInstance();
+        final Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         datePicker.init(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), new DatePicker.OnDateChangedListener() {
 
@@ -56,7 +65,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 month = newMonth;
                 dayOfMonth = newDayOfMonth;
 
-                Log.d("Date", "Year=" + year + " Month=" + (month + 1) + " day=" + dayOfMonth);
+                String tempDateString = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault());
+                tempDateString = tempDateString.substring(0,2);
+
+                dateString = tempDateString + ", " + dayOfMonth;
+
+
+
+                Log.d("Date", "Year=" + year + " Month=" + (month + 1) + " day=" + dayOfMonth + dateString);
           }
         });
 
@@ -73,10 +89,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         new Thread(new Task(urlSource)).start();
     } //
 
-    // Used to parse RAW XML data and populate a list with current incidents and roadworks for that date, displaying the list to user
-    public void parseRawTextByDate() {
+    // Used to parse RAW XML data and populate a list with roadworks for that date, displaying the list to user
+    public void parseRawTextByDate(InputStream rawRoadworks) {
+
+        try {
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            XmlPullParser xpp = factory.newPullParser();
+
+            xpp.setInput(new InputStreamReader(rawRoadworks));
+            int eventType = xpp.getEventType();
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                // Found a start tag
+                if (eventType == XmlPullParser.START_TAG) {
+
+                    if (xpp.getName().equalsIgnoreCase("title")) {
+                        // Now just get the associated text
+                        String temp = xpp.nextText();
+                        // Do something with text
+                        Log.e("MyTag", "Title is " + temp);
+                    }
+
+                    else if (xpp.getName().equalsIgnoreCase("description")) {
+                            // Now just get the associated text
+                            String temp = xpp.nextText();
+                            // Do something with text
+                            Log.e("MyTag", "Description is " + temp);
+                    }
+
+                    else if (xpp.getName().equalsIgnoreCase("link")) {
+                                    // Now just get the associated text
+                                    String temp = xpp.nextText();
+                                    // Do something with text
+                                    Log.e("MyTag", "Washer is " + temp);
+                    }
+
+                    else if (xpp.getName().equalsIgnoreCase("pubDate")) {
+                        // Now just get the associated text
+                        String temp = xpp.nextText();
+                        // Do something with text
+
+                        Log.e("MyTag", "pubDate is  " + temp);
+                    }
+
+                }
+
+                // Get the next event
+                eventType = xpp.next();
+            }
 
 
+        } catch (XmlPullParserException ae1) {
+            Log.e("MyTag", "Parsing error" + ae1.toString());
+        } catch (IOException ae1) {
+            Log.e("MyTag", "IO error during parsing");
+        }
+
+        Log.e("MyTag", "End document");
     }
 
     // Need separate thread to access the internet resource over network
@@ -107,28 +177,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 aurl = new URL(url);
                 yc = aurl.openConnection();
                 in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
+                InputStream rawInput = yc.getInputStream();
                 //
                 // Throw away the first 2 header lines before parsing
                 //
                 //
                 //
+                parseRawTextByDate(rawInput);
                 while ((inputLine = in.readLine()) != null)
                 {
                     result = result + inputLine;
-                    Log.e("MyTag",inputLine);
 
                 }
                 in.close();
-            }
+        }
             catch (IOException ae)
             {
                 Log.e("MyTag", "ioexception");
             }
 
             //
-            // Now that you have the xml data you can parse it
+            // Now that you have the xml data I will call a function to parse it by date
             //
-
 
             // Now update the TextView to display raw XML data
             // Probably not the best way to update TextView
