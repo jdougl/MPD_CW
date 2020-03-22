@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -40,6 +41,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int month;
     int dayOfMonth;
     String dateString;
+
+    // used to store roadwork data which we will use to populate list
+    ArrayList<String> roadworks = new ArrayList<String>();
 
 
     @Override
@@ -61,18 +65,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onDateChanged(DatePicker datePicker, int newYear, int newMonth, int newDayOfMonth) {
-                year = newYear + 1;
+                year = newYear;
                 month = newMonth;
                 dayOfMonth = newDayOfMonth;
 
+                calendar.set(year, month, dayOfMonth);
+
                 String tempDateString = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault());
-                tempDateString = tempDateString.substring(0,2);
+                tempDateString = tempDateString.substring(0,3);
 
-                dateString = tempDateString + ", " + dayOfMonth;
+                String tempMonthString = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
+                tempMonthString = tempMonthString.substring(0,3);
+
+                dateString = tempDateString + ", " + dayOfMonth + " " + tempMonthString + " " + year + " 00:00:00 GMT";
 
 
 
-                Log.d("Date", "Year=" + year + " Month=" + (month + 1) + " day=" + dayOfMonth + dateString);
+                Log.d("Date", "Year=" + year + " Month=" + (month) + " day=" + dayOfMonth + dateString);
           }
         });
 
@@ -91,6 +100,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // Used to parse RAW XML data and populate a list with roadworks for that date, displaying the list to user
     public void parseRawTextByDate(InputStream rawRoadworks) {
+        String tempTitle = null;
+        String tempDesc = null;
+        String tempLink = null;
 
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -104,33 +116,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Found a start tag
                 if (eventType == XmlPullParser.START_TAG) {
 
+                    // temp variables to store values before we know if we need them or not
+
                     if (xpp.getName().equalsIgnoreCase("title")) {
                         // Now just get the associated text
-                        String temp = xpp.nextText();
+                        tempTitle = xpp.nextText();
                         // Do something with text
-                        Log.e("MyTag", "Title is " + temp);
+                       // Log.e("MyTag", "Title is " + tempTitle);
                     }
 
                     else if (xpp.getName().equalsIgnoreCase("description")) {
                             // Now just get the associated text
-                            String temp = xpp.nextText();
+                            tempDesc = xpp.nextText();
                             // Do something with text
-                            Log.e("MyTag", "Description is " + temp);
+                           // Log.e("MyTag", "Description is " + tempDesc);
                     }
 
                     else if (xpp.getName().equalsIgnoreCase("link")) {
                                     // Now just get the associated text
-                                    String temp = xpp.nextText();
+                                    tempLink = xpp.nextText();
                                     // Do something with text
-                                    Log.e("MyTag", "Washer is " + temp);
+                                    //Log.e("MyTag", "Washer is " + tempLink);
                     }
 
                     else if (xpp.getName().equalsIgnoreCase("pubDate")) {
                         // Now just get the associated text
                         String temp = xpp.nextText();
-                        // Do something with text
 
-                        Log.e("MyTag", "pubDate is  " + temp);
+                        // System.out.println(temp);
+                        // System.out.println(dateString);
+
+                        if(temp.equals(dateString)) {
+                            roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink);
+                        }
+
+                        //Log.e("MyTag", "pubDate is  " + temp);
                     }
 
                 }
@@ -139,13 +159,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 eventType = xpp.next();
             }
 
+            // print roadworks array
+            if(roadworks.size() > 0) {
+                for (int i = 0; i < roadworks.size(); i++) {
+                    System.out.println(roadworks.get(i));
+                }
+            }
+            else {
+                System.out.println("No roadworks on given date");
+            }
 
         } catch (XmlPullParserException ae1) {
             Log.e("MyTag", "Parsing error" + ae1.toString());
         } catch (IOException ae1) {
             Log.e("MyTag", "IO error during parsing");
         }
-
         Log.e("MyTag", "End document");
     }
 
