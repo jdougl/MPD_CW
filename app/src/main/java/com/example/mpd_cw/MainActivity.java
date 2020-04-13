@@ -77,11 +77,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String tempMonthString = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
                 tempMonthString = tempMonthString.substring(0,3);
 
-                dateString = tempDateString + ", " + dayOfMonth + " " + tempMonthString + " " + year + " 00:00:00 GMT";
+                // ensures year is 2 digits wide to make sure that single digits have a leading 0 e.g. 5 must be 05
+                String formattedDay = String.format("%02d", dayOfMonth);
 
+                dateString = tempDateString + ", " + formattedDay + " " + tempMonthString + " " + year + " 00:00:00 GMT";
 
-
-                Log.d("Date", "Year=" + year + " Month=" + (month) + " day=" + dayOfMonth + dateString);
+                Log.d("Date", "Year=" + year + " Month=" + (month) + " day=" + formattedDay + dateString);
           }
         });
 
