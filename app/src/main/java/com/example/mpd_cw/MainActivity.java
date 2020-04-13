@@ -3,8 +3,10 @@ package com.example.mpd_cw;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,11 +16,9 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -158,15 +158,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Get the next event
                 eventType = xpp.next();
             }
+            System.out.println(roadworks.size());
 
-            // print roadworks array
+            // modifies view - displaying roadworks or telling the user that no roadworks exist on the specified date
             if(roadworks.size() > 0) {
-                for (int i = 0; i < roadworks.size(); i++) {
+                int tempRoadworksSize = roadworks.size();
+
+                // return list of roadworks if there are some
+                for (int i = 0; i <= tempRoadworksSize; i++) {
+
+                    // add roadworks for given date to global array
+                    roadworks.add(roadworks.get(i));
+                    System.out.println(i);
                     System.out.println(roadworks.get(i));
                 }
             }
+
+            // otherwise return a message to user informing them no roadworks exist on given date
             else {
-                System.out.println("No roadworks on given date");
+                System.out.println("No roadworks found on given date!");
+                roadworks.add("No roadworks found on given date!");
             }
 
         } catch (XmlPullParserException ae1) {
@@ -235,8 +246,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MainActivity.this.runOnUiThread(new Runnable()
             {
                 public void run() {
-                    Log.d("UI thread", "I am the UI thread");
-                    rawDataDisplay.setText(result);
+
+                    // List we are going to populate with roadworks
+                    ListView roadWorkList = findViewById(R.id.roadwork_list);
+                    System.out.println("Adding roadworks to UI");
+                    System.out.println(roadworks);
+                    ArrayAdapter<String> roadworkArrayAdapter = new ArrayAdapter<>(
+                            MainActivity.this,
+                            android.R.layout.simple_list_item_1,
+                            roadworks);
+
+                    roadWorkList.setAdapter(roadworkArrayAdapter);
+
                 }
             });
         }
