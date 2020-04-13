@@ -118,26 +118,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (eventType == XmlPullParser.START_TAG) {
 
                     // temp variables to store values before we know if we need them or not
-
                     if (xpp.getName().equalsIgnoreCase("title")) {
-                        // Now just get the associated text
+                        //  get the associated text
                         tempTitle = xpp.nextText();
-                        // Do something with text
-                       // Log.e("MyTag", "Title is " + tempTitle);
+
+                        // formatting - making the text more readable
+                        tempTitle = "Title: " + tempTitle + "\n";
                     }
 
                     else if (xpp.getName().equalsIgnoreCase("description")) {
                             // Now just get the associated text
                             tempDesc = xpp.nextText();
-                            // Do something with text
-                           // Log.e("MyTag", "Description is " + tempDesc);
+
+                            // formatting and making the description more readable
+                            tempDesc = tempDesc.replaceAll("<br />", "\n\n");
                     }
 
                     else if (xpp.getName().equalsIgnoreCase("link")) {
                                     // Now just get the associated text
                                     tempLink = xpp.nextText();
-                                    // Do something with text
-                                    //Log.e("MyTag", "Washer is " + tempLink);
                     }
 
                     else if (xpp.getName().equalsIgnoreCase("pubDate")) {
@@ -146,7 +145,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         // System.out.println(temp);
                         // System.out.println(dateString);
-
                         if(temp.equals(dateString)) {
                             roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink);
                         }
