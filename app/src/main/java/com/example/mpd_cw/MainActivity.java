@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 dialog.setContentView(R.layout.map_popup_view);////your custom content
 
-                MapView mMapView = (MapView) dialog.findViewById(R.id.mapView);
+                MapView mMapView = (MapView) dialog.findViewById(R.id.map_view);
                 MapsInitializer.initialize(MainActivity.this);
 
                 mMapView.onCreate(dialog.onSaveInstanceState());
