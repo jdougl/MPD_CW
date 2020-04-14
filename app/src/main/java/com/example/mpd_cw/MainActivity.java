@@ -1,15 +1,27 @@
 package com.example.mpd_cw;
 
+import android.app.Dialog;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -27,9 +39,11 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
-    private TextView rawDataDisplay;
     private String result;
     private Button startButton;
+    private ListView roadWorkList;
+    LinearLayout layout;
+
     // Traffic Scotland URLs
     private String urlSource = "https://trafficscotland.org/rss/feeds/roadworks.aspx";
     //private String urlSource = "https://trafficscotland.org/rss/feeds/plannedroadworks.aspx";
@@ -45,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // used to store roadwork data which we will use to populate list
     ArrayList<String> roadworks = new ArrayList<String>();
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -53,9 +66,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        rawDataDisplay = (TextView)findViewById(R.id.rawDataDisplay);
         startButton = (Button)findViewById(R.id.startButton);
         startButton.setOnClickListener(this);
+
+        roadWorkList = findViewById(R.id.roadwork_list);
 
         // Initialize datepicker and add a listener
         DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
@@ -86,6 +100,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
           }
         });
 
+
+        roadWorkList.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override public void onItemClick(AdapterView<?> arg0, View arg1,int position, long arg3)
+            {
+                
+            }
+        });
     }
 
     public void onClick(View aview)
@@ -109,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
             XmlPullParser xpp = factory.newPullParser();
+            roadworks.clear();
 
             xpp.setInput(new InputStreamReader(rawRoadworks));
             int eventType = xpp.getEventType();
@@ -150,6 +173,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
 
                         //Log.e("MyTag", "pubDate is  " + temp);
+                    }
+
+                    // finally add a more detail info button featuring a map
+                    else {
+
                     }
 
                 }
@@ -245,9 +273,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MainActivity.this.runOnUiThread(new Runnable()
             {
                 public void run() {
-
-                    // List we are going to populate with roadworks
-                    ListView roadWorkList = findViewById(R.id.roadwork_list);
                     System.out.println("Adding roadworks to UI");
                     System.out.println(roadworks);
                     ArrayAdapter<String> roadworkArrayAdapter = new ArrayAdapter<>(
@@ -256,7 +281,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             roadworks);
 
                     roadWorkList.setAdapter(roadworkArrayAdapter);
-
                 }
             });
         }
