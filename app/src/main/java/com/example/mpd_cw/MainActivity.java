@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -19,9 +20,14 @@ import android.widget.RelativeLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -103,9 +109,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         roadWorkList.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
-            @Override public void onItemClick(AdapterView<?> arg0, View arg1,int position, long arg3)
+            @Override public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
             {
-                
+                final Dialog dialog = new Dialog(MainActivity.this);
+
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                /////make map clear
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+
+                dialog.setContentView(R.layout.map_popup_view);////your custom content
+
+                MapView mMapView = (MapView) dialog.findViewById(R.id.mapView);
+                MapsInitializer.initialize(MainActivity.this);
+
+                mMapView.onCreate(dialog.onSaveInstanceState());
+                mMapView.onResume();
+
+
+                mMapView.getMapAsync(new OnMapReadyCallback() {
+                    @Override
+                    public void onMapReady(final GoogleMap googleMap) {
+                        LatLng posisiabsen = new LatLng(100.2, 100.2); ////your lat lng
+                        googleMap.addMarker(new MarkerOptions().position(posisiabsen).title("Yout title"));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(posisiabsen));
+                        googleMap.getUiSettings().setZoomControlsEnabled(true);
+                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
+                    }
+                });
+
+
+                Button dialogButton = (Button) dialog.findViewById(R.id.btn_cancel);
+                // if button is clicked, close the custom dialog
+                dialogButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
             }
         });
     }
@@ -174,12 +216,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         //Log.e("MyTag", "pubDate is  " + temp);
                     }
-
-                    // finally add a more detail info button featuring a map
-                    else {
-
-                    }
-
                 }
 
                 // Get the next event
@@ -196,8 +232,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     // add roadworks for given date to global array
                     roadworks.add(roadworks.get(i));
-                    System.out.println(i);
-                    System.out.println(roadworks.get(i));
+                   // System.out.println(i);
+                   // System.out.println(roadworks.get(i));
                 }
             }
 
@@ -274,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             {
                 public void run() {
                     System.out.println("Adding roadworks to UI");
-                    System.out.println(roadworks);
+                   // System.out.println(roadworks);
                     ArrayAdapter<String> roadworkArrayAdapter = new ArrayAdapter<>(
                             MainActivity.this,
                             android.R.layout.simple_list_item_1,
