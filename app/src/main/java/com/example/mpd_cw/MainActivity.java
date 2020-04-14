@@ -168,6 +168,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String tempTitle = null;
         String tempDesc = null;
         String tempLink = null;
+        String tempLatLngString;
+        LatLng tempLatLng = null;
 
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -191,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         tempTitle = "Title: " + tempTitle + "\n";
                     }
 
+                    // parse out description, remove tags
                     else if (xpp.getName().equalsIgnoreCase("description")) {
                             // Now just get the associated text
                             tempDesc = xpp.nextText();
@@ -199,11 +202,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             tempDesc = tempDesc.replaceAll("<br />", "\n\n");
                     }
 
+                    // parse out link
                     else if (xpp.getName().equalsIgnoreCase("link")) {
-                                    // Now just get the associated text
-                                    tempLink = xpp.nextText();
+                        // Now just get the associated text
+                        tempLink = xpp.nextText();
                     }
 
+                    // get Longitude and Latitude from RSS feed
+                    else if (xpp.getName().equalsIgnoreCase("point")) {
+                        // Now just get the associated text
+                        tempLatLngString = xpp.nextText();
+
+                        // parse out lat and lng from string
+                        String tempLat;
+                        String tempLong;
+                        double latInt;
+                        double longInt;
+
+                        tempLat = tempLatLngString.substring(0, tempLatLngString.indexOf(" "));
+                        tempLong = tempLatLngString.substring(1, tempLatLngString.indexOf(" "));
+
+                        // make latlng object
+                        tempLatLng = new LatLng(Double.parseDouble(tempLat), Double.parseDouble(tempLong));
+                    }
+
+                    // parse out pub date, if pubdate is the same as the one entered in datepicker, add it to the list
                     else if (xpp.getName().equalsIgnoreCase("pubDate")) {
                         // Now just get the associated text
                         String temp = xpp.nextText();
@@ -211,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         // System.out.println(temp);
                         // System.out.println(dateString);
                         if(temp.equals(dateString)) {
-                            roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink);
+                            roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink + "\n" + tempLatLng);
                         }
 
                         //Log.e("MyTag", "pubDate is  " + temp);
@@ -269,9 +292,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             URLConnection yc;
             BufferedReader in = null;
             String inputLine = "";
-
-
-            Log.e("MyTag","in run");
 
             try
             {
