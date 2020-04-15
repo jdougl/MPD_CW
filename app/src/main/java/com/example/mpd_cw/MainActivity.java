@@ -125,13 +125,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mMapView.onCreate(dialog.onSaveInstanceState());
                 mMapView.onResume();
 
+                // extract info from roadwork String by splitting into lines and use method to build a latlng from the String
+                String[] lines = roadworks.get(position).split("\\r?\\n");
+                String tempPointLatLngString = lines[8];
+
+                System.out.println(tempPointLatLngString);
+                final LatLng pointLatLng = buildLatLng(tempPointLatLngString);
 
                 mMapView.getMapAsync(new OnMapReadyCallback() {
                     @Override
                     public void onMapReady(final GoogleMap googleMap) {
-                        LatLng posisiabsen = new LatLng(100.2, 100.2); ////your lat lng
-                        googleMap.addMarker(new MarkerOptions().position(posisiabsen).title("Yout title"));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(posisiabsen));
+                        googleMap.addMarker(new MarkerOptions().position(pointLatLng).title("Work Location"));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(pointLatLng));
                         googleMap.getUiSettings().setZoomControlsEnabled(true);
                         googleMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
                     }
@@ -152,6 +157,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    // method to build a LatLng from given string Latitude and Longitude seperated by spaces
+    public LatLng buildLatLng(String latLngStr) {
+
+        // parse out lat and lng from string
+        String tempLat;
+        String tempLong;
+
+        System.out.println(latLngStr);
+
+        double latInt;
+        double longInt;
+
+        tempLat = latLngStr.substring(0, latLngStr.indexOf(" "));
+        tempLong = latLngStr.substring(latLngStr.indexOf(" "));
+        System.out.println(latLngStr);
+
+        System.out.println(tempLat);
+        System.out.println(tempLong);
+
+        // make latlng object
+       LatLng tempLatLng = new LatLng(Double.parseDouble(tempLat), Double.parseDouble(tempLong));
+
+       return tempLatLng;
+    }
+
     public void onClick(View aview)
     {
         startProgress();
@@ -168,8 +198,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String tempTitle = null;
         String tempDesc = null;
         String tempLink = null;
-        String tempLatLngString;
-        LatLng tempLatLng = null;
+        String tempLatLngString = null;
 
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -206,24 +235,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     else if (xpp.getName().equalsIgnoreCase("link")) {
                         // Now just get the associated text
                         tempLink = xpp.nextText();
+
+                        // formatting
+                        tempLink = "Link: " + tempLink;
                     }
 
                     // get Longitude and Latitude from RSS feed
                     else if (xpp.getName().equalsIgnoreCase("point")) {
                         // Now just get the associated text
                         tempLatLngString = xpp.nextText();
-
-                        // parse out lat and lng from string
-                        String tempLat;
-                        String tempLong;
-                        double latInt;
-                        double longInt;
-
-                        tempLat = tempLatLngString.substring(0, tempLatLngString.indexOf(" "));
-                        tempLong = tempLatLngString.substring(1, tempLatLngString.indexOf(" "));
-
-                        // make latlng object
-                        tempLatLng = new LatLng(Double.parseDouble(tempLat), Double.parseDouble(tempLong));
                     }
 
                     // parse out pub date, if pubdate is the same as the one entered in datepicker, add it to the list
@@ -234,10 +254,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         // System.out.println(temp);
                         // System.out.println(dateString);
                         if(temp.equals(dateString)) {
-                            roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink + "\n" + tempLatLng);
+                            roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink + "\n" + tempLatLngString);
                         }
 
-                        //Log.e("MyTag", "pubDate is  " + temp);
+                        // Log.e("MyTag", "pubDate is  " + temp);
                     }
                 }
 
