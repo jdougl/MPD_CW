@@ -10,7 +10,7 @@
         android:id="@+id/header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="The google map below show's the spot!"
+        android:text="The google map below show's the effected route, with a marker on the affected road."
         android:layout_alignParentTop="true" />
 
     <com.google.android.gms.maps.MapView
