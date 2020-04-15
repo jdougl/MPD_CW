@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">MPD_CW</string>
+    <string name="entry_text">
+        Welcome to Traffic Scotland\'s Journey Planner. \n\n
+
+        Choose the date you wish to travel below:
+    </string>
+
+    <string name="search_text">
+        Plan your journey by searching for effected roads below (tap a roadwork for map information):
+    </string>
 </resources>
+

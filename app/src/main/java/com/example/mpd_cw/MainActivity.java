@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String result;
     private Button startButton;
     private ListView roadWorkList;
-    LinearLayout layout;
+    public Toolbar toolbar;
 
     // Traffic Scotland URLs
     private String urlSource = "https://trafficscotland.org/rss/feeds/roadworks.aspx";

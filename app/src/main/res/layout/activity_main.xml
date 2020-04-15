@@ -7,39 +7,58 @@
         android:layout_height="fill_parent"
         android:orientation="vertical">
 
+    <TextView
+        android:id="@+id/text_view_id"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textSize="18dp"
+        android:text="@string/entry_text" />
         <DatePicker
             android:id="@+id/datePicker"
             android:datePickerMode="spinner"
             android:calendarViewShown="false"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/text_view_id"
             android:endYear="2100"
             android:startYear="1900" >
         </DatePicker>
-
-    <!-- Autocomplete text view that allows users to search directly for incidents -->
-    <AutoCompleteTextView
-        android:id="@+id/editText1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:imeOptions="actionSearch"
-        android:inputType="textAutoComplete|textAutoCorrect"
-        android:textColor="#000000" >
-        <requestFocus />
-    </AutoCompleteTextView>
-
-    <Button
-        android:id="@+id/searchButton"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="Search"/>
-
         <Button
             android:id="@+id/startButton"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Get roadworks"/>
+            android:layout_marginBottom="12dp"
+            android:text="Get Roadworks for Date"/>
+    <TextView
+        android:id="@+id/text_view_id2"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:textSize="16dp"
+        android:text="@string/search_text" />
+
+    <!-- Autocomplete text view that allows users to search directly for incidents -->
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <AutoCompleteTextView
+            android:id="@+id/editText1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:imeOptions="actionSearch"
+            android:inputType="textAutoComplete|textAutoCorrect"
+            android:textColor="#000000" >
+            <requestFocus />
+        </AutoCompleteTextView>
+        <Button
+            android:id="@+id/searchButton"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/editText1"
+            android:text="Search"/>
+    </RelativeLayout>
 
     <ListView
             android:id="@+id/roadwork_list"
