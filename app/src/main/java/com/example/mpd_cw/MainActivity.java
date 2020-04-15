@@ -65,11 +65,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int dayOfMonth;
     String dateString;
 
+    // used to avoid repopulating data when the application doesn't need to, using up resources
+    private boolean firstParse;
+
     // used to store roadwork data which we will use to populate list
     ArrayList<String> roadworks = new ArrayList<String>();
 
-    // single variable used to store ONLY roadwork titles for searching functionality
+    //  variable used to store ONLY roadworks for searching functionality - could be refactored to inner class to stick to OOP
     ArrayList<String> roadworkTitles = new ArrayList<String>();
+    ArrayList<String> roadworkDescs = new ArrayList<String>();
+    ArrayList<String> roadworkLinks = new ArrayList<String>();
+    ArrayList<String> roadworkLatLongs = new ArrayList<String>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -77,6 +84,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // on create pull ALL information from roadworks FEED - to ensure search functionality works
+        startProgress();
 
         startButton = (Button)findViewById(R.id.startButton);
         startButton.setOnClickListener(this);
@@ -88,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // initialize the custom textview with autocomplete
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_dropdown_item_1line, roadworkTitles);
-        AutoCompleteTextView textView = (AutoCompleteTextView)
+        final AutoCompleteTextView textView = (AutoCompleteTextView)
                 findViewById(R.id.editText1);
         textView.setAdapter(adapter);
 
@@ -125,7 +135,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onClick(View view) {
-                System.out.println("yat");
+
+                // get search value
+                String searchValue = textView.getText().toString();
+
+                System.out.println(searchValue);
+
+                System.out.println(roadworkTitles);
+
+                // check if titles contains the value
+                if(roadworkTitles.contains(searchValue)) {
+                    roadworks.clear();
+
+                    // get index of location of search value
+                    int indexOfTitle = roadworkTitles.indexOf(searchValue);
+
+                    System.out.println(indexOfTitle);
+
+                    // formatting - making the text more readable
+                    String tempTitle = "Title: " + roadworkTitles.get(indexOfTitle) + "\n";
+                    String tempDesc = roadworkDescs.get(indexOfTitle);
+                    String tempLink = roadworkLinks.get(indexOfTitle);
+                    String tempLatLngString = roadworkLatLongs.get(indexOfTitle);
+
+                    roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink + "\n" + tempLatLngString);
+
+                    System.out.println("Adding roadworks to UI");
+                    // System.out.println(roadworks);
+                    ArrayAdapter<String> roadworkArrayAdapter = new ArrayAdapter<>(
+                            MainActivity.this,
+                            android.R.layout.simple_list_item_1,
+                            roadworks);
+
+                    roadWorkList.setAdapter(roadworkArrayAdapter);
+
+                }
             }
         });
 
@@ -240,8 +284,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //  get the associated text
                         tempTitle = xpp.nextText();
 
-                        // adding all titles to roadworks titles for search functionality
-                        roadworkTitles.add(tempTitle);
+                        // adding all titles to roadworks titles for search functionality - only on first parse of data
+                        if(!firstParse) {
+                            roadworkTitles.add(tempTitle);
+                        }
 
                         // formatting - making the text more readable
                         tempTitle = "Title: " + tempTitle + "\n";
@@ -250,11 +296,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     // parse out description, remove tags
                     else if (xpp.getName().equalsIgnoreCase("description")) {
-                            // Now just get the associated text
-                            tempDesc = xpp.nextText();
+                        // Now just get the associated text
+                        tempDesc = xpp.nextText();
 
-                            // formatting and making the description more readable
-                            tempDesc = tempDesc.replaceAll("<br />", "\n\n");
+                        // formatting and making the description more readable
+                        tempDesc = tempDesc.replaceAll("<br />", "\n\n");
+
+                        // adding all descs to roadworks titles for search functionality - only on first parse of data
+                        if(!firstParse) {
+                            roadworkDescs.add(tempDesc);
+                        }
                     }
 
                     // parse out link
@@ -264,12 +315,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         // formatting
                         tempLink = "Link: " + tempLink;
+
+                        // adding all links to roadworks titles for search functionality - only on first parse of data
+                        if(!firstParse) {
+                            roadworkLinks.add(tempLink);
+                        }
                     }
 
                     // get Longitude and Latitude from RSS feed
                     else if (xpp.getName().equalsIgnoreCase("point")) {
                         // Now just get the associated text
                         tempLatLngString = xpp.nextText();
+
+                        // adding all LatLngStrings to roadworks titles for search functionality - only on first parse of data
+                        if(!firstParse) {
+                            roadworkLatLongs.add(tempLatLngString);
+                        }
                     }
 
                     // parse out pub date, if pubdate is the same as the one entered in datepicker, add it to the list
@@ -290,7 +351,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Get the next event
                 eventType = xpp.next();
             }
-            System.out.println(roadworks.size());
+
+            firstParse = true;
 
             // modifies view - displaying roadworks or telling the user that no roadworks exist on the specified date
             if(roadworks.size() > 0) {
@@ -301,7 +363,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     // add roadworks for given date to global array
                     roadworks.add(roadworks.get(i));
-                   // System.out.println(i);
+
+                    // System.out.println(i);
                    // System.out.println(roadworks.get(i));
                 }
             }
@@ -330,6 +393,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         {
             url = aurl;
         }
+
         @Override
         public void run()
         {
@@ -346,11 +410,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 yc = aurl.openConnection();
                 in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
                 InputStream rawInput = yc.getInputStream();
+
                 //
                 // Throw away the first 2 header lines before parsing
                 //
                 //
                 //
+
                 parseRawTextByDate(rawInput);
                 System.out.println(roadworkTitles);
                 while ((inputLine = in.readLine()) != null)
@@ -364,14 +430,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             {
                 Log.e("MyTag", "ioexception");
             }
-
-            //
-            // Now that you have the xml data I will call a function to parse it by date
-            //
-
-            // Now update the TextView to display raw XML data
-            // Probably not the best way to update TextView
-            // but we are just getting started !
 
             MainActivity.this.runOnUiThread(new Runnable()
             {
