@@ -1,6 +1,8 @@
 package com.example.mpd_cw;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +13,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
@@ -65,6 +68,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // used to store roadwork data which we will use to populate list
     ArrayList<String> roadworks = new ArrayList<String>();
 
+    // single variable used to store ONLY roadwork titles for searching functionality
+    ArrayList<String> roadworkTitles = new ArrayList<String>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -75,7 +81,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startButton = (Button)findViewById(R.id.startButton);
         startButton.setOnClickListener(this);
 
+        Button searchSubmitButton = (Button)findViewById(R.id.searchButton);
+
         roadWorkList = findViewById(R.id.roadwork_list);
+
+        // initialize the custom textview with autocomplete
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, roadworkTitles);
+        AutoCompleteTextView textView = (AutoCompleteTextView)
+                findViewById(R.id.editText1);
+        textView.setAdapter(adapter);
 
         // Initialize datepicker and add a listener
         DatePicker datePicker = (DatePicker) findViewById(R.id.datePicker);
@@ -106,6 +121,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
           }
         });
 
+        searchSubmitButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                System.out.println("yat");
+            }
+        });
 
         roadWorkList.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
@@ -218,8 +240,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //  get the associated text
                         tempTitle = xpp.nextText();
 
+                        // adding all titles to roadworks titles for search functionality
+                        roadworkTitles.add(tempTitle);
+
                         // formatting - making the text more readable
                         tempTitle = "Title: " + tempTitle + "\n";
+
                     }
 
                     // parse out description, remove tags
@@ -326,6 +352,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //
                 //
                 parseRawTextByDate(rawInput);
+                System.out.println(roadworkTitles);
                 while ((inputLine = in.readLine()) != null)
                 {
                     result = result + inputLine;
