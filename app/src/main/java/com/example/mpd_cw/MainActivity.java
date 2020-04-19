@@ -1,8 +1,14 @@
+// Jamie Douglas | S1625371
+// 15/04/2020
+
 package com.example.mpd_cw;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.icu.text.SymbolTable;
+import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -23,6 +30,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,10 +49,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
@@ -140,9 +151,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // get search value
                 String searchValue = textView.getText().toString();
 
-                System.out.println(searchValue);
+               // System.out.println(searchValue);
 
-                System.out.println(roadworkTitles);
+               // System.out.println(roadworkTitles);
 
                 // check if titles contains the value
                 if(roadworkTitles.contains(searchValue)) {
@@ -195,6 +206,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // extract info from roadwork String by splitting into lines and use method to build a latlng from the String
                 String[] lines = roadworks.get(position).split("\\r?\\n");
                 String tempPointLatLngString = lines[8];
+                String tempDescription = lines[2] + lines[4];
 
                 System.out.println(tempPointLatLngString);
                 final LatLng pointLatLng = buildLatLng(tempPointLatLngString);
@@ -219,7 +231,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
 
-                dialog.show();
+                // roadwork length image (red/yellow/green) image used to demonstrate how long the roadworks will last
+                 Drawable colourImg = roadworkLengthColour(tempDescription);
+                 System.out.println(colourImg);
+                 ImageView imgView = dialog.findViewById(R.id.colour_image);
+                 imgView.setImageDrawable(colourImg);
+
+                 dialog.show();
             }
         });
     }
@@ -259,6 +277,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Run network access on a separate thread;
         new Thread(new Task(urlSource)).start();
     } //
+
+    // adds a red, yellow or green image dependent on how long the roadwork is going to last
+    public Drawable roadworkLengthColour(String roadworkDesc) {
+
+        // parse all numbers out of the description
+        roadworkDesc = roadworkDesc.replaceAll("[^0-9]+", " ");
+        List numberArray = Arrays.asList(roadworkDesc.trim().split(" "));
+
+        System.out.println(roadworkDesc);
+
+        // casting values to start and end date, being careful to deal with leading 0's appropriately
+        String startDate = (String) numberArray.get(0);
+        String endDate = (String) numberArray.get(4);
+
+        int startInt = Integer.parseInt(startDate);
+        int endInt = Integer.parseInt(endDate);
+        int roadworkLength = endInt - startInt;
+
+        // System.out.println(startInt);
+        // System.out.println(endInt);
+
+        // determine green/yellow/red image and return it
+        if(roadworkLength <= 7) {
+            Drawable roadworkColour  = ContextCompat.getDrawable(this,R.drawable.green);
+            return roadworkColour;
+        }
+        // yellow
+        else if(roadworkLength <= 14) {
+            Drawable roadworkColour  = ContextCompat.getDrawable(this,R.drawable.yellow);
+            return roadworkColour;
+        }
+        // red
+        else {
+            Drawable roadworkColour  = ContextCompat.getDrawable(this,R.drawable.red);
+            return roadworkColour;
+        }
+
+    }
 
     // Used to parse RAW XML data and populate a list with roadworks for that date, displaying the list to user
     public void parseRawTextByDate(InputStream rawRoadworks) {
@@ -341,6 +397,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         // System.out.println(temp);
                         // System.out.println(dateString);
+
                         if(temp.equals(dateString)) {
                             roadworks.add(tempTitle + "\n" + tempDesc + "\n" + tempLink + "\n" + tempLatLngString);
                         }
@@ -432,6 +489,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.e("MyTag", "ioexception");
             }
 
+            // UI thread which runs concurrently
             MainActivity.this.runOnUiThread(new Runnable()
             {
                 public void run() {
